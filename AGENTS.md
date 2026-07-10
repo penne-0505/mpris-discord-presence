@@ -13,3 +13,21 @@
 - 完了前には `qa-review` skill を使い、verification verdict を確認する。
 - 安全性・権限・secret・外部入力の扱いは [security for agents](_docs/standards/security_for_agents.md) に従う。
 - root 直下の Markdown は active project guidance として扱われる。一回限りの実装プロンプトを残す場合は `_evals/prompts/` 等へ移し、非運用の履歴資料として明記する。
+
+## Project runtime
+
+- 対象環境は Linux desktop session、session D-Bus、MPRIS、Discord desktop である。
+- Python package は `src/` layout。PyGObject と Playerctl typelib は OS package を使用し、repo に binary を vendor しない。
+- Discord Application ID は public identifier として扱う。user token、OAuth token、client secret、Rich Presence join secret を追加しない。
+- MPRIS metadata は private data になり得る。通常ログ、例外ログ、test artifact に title / artist / album / URL を残さない。
+- live QA で player や Discord の停止・再起動を行う前に、利用者への影響を確認する。
+
+## Project commands
+
+- Unit tests: `PYTHONPATH=src python -m unittest -v`
+- Compile check: `python -m compileall -q src tests`
+- Diagnostics: `PYTHONPATH=src python -m mpris_discord_presence --config config.toml doctor`
+- Foreground run: `PYTHONPATH=src python -m mpris_discord_presence --config config.toml run`
+- Service dry-run: `./scripts/install-user-service.sh --dry-run`
+- Service install/start after config: `./scripts/install-user-service.sh --enable-now`
+- Docs checks: `./scripts/check-docs.sh`

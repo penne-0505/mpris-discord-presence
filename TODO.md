@@ -2,7 +2,7 @@
 
 ## 0. System Metadata
 
-- **Current Max ID**: `Next ID No: 9` (タスク追加時にインクリメント必須)
+- **Current Max ID**: `Next ID No: 11` (タスク追加時にインクリメント必須)
 - **ID Source of Truth**: このファイルの `Next ID No` 行が、全プロジェクトにおける唯一の ID 発番元である。
 
 ## 1. Task Lifecycle (State Machine)
@@ -306,106 +306,7 @@ Risk の詳細は `_docs/standards/quality_assurance.md` を参照する。
 
 ## Backlog
 
-### Docs-Chore-1: [Chore] Review and customize AGENTS.md
-
-- **Title**: [Chore] Review and customize AGENTS.md
-- **ID**: Docs-Chore-1
-- **Priority**: P2
-- **Size**: XS
-- **Risk**: Low
-- **Area**: Docs
-- **Dependencies**: []
-- **Goal**: `AGENTS.md` がプロジェクトのニーズに応じて必要に応じて編集されている。
-- **Acceptance Criteria**:
-  - AC-001: `AGENTS.md` の禁止事項、実行環境、推奨コマンドがプロジェクト実態に合っている。
-  - AC-002: 外部入力、secret、破壊的操作の扱いがプロジェクトの安全基準と矛盾していない。
-- **Steps**:
-  1. [ ] `AGENTS.md` を開き、既存の内容を確認する
-  2. [ ] 必要に応じてプロジェクト固有のコマンドや禁止事項を追記する
-  3. [ ] 変更後にリンクと安全基準の整合性を確認する
-- **Description**:
-  - Context: 新規プロジェクト作成直後に agent 向け入口を調整する。
-  - Notes: `Size XS` かつ `Risk Low` のため Plan / Intent / QA は不要。
-- **Plan**: None
-- **Intent**: None
-- **QA**: None
-- **Verification**: None
-
-### Docs-Chore-2: [Chore] Customize README.md for project
-
-- **Title**: [Chore] Customize README.md for project
-- **ID**: Docs-Chore-2
-- **Priority**: P0
-- **Size**: S
-- **Risk**: Low
-- **Area**: Docs
-- **Dependencies**: []
-- **Goal**: `README.md` がプロジェクトの概要、目的、使用方法に合わせて編集されている。
-- **Acceptance Criteria**:
-  - AC-001: README の概要、使用方法、カスタマイズ案内がプロジェクト固有の内容になっている。
-  - AC-002: テンプレート由来の不要な説明が残っていない。
-- **Steps**:
-  1. [ ] 現在の `README.md` を確認する
-  2. [ ] プロジェクト名、概要、説明をプロジェクトに合わせて書き換える
-  3. [ ] 使用方法セクションを編集する
-  4. [ ] 不要なテンプレート固有の記述を削除または修正する
-- **Description**:
-  - Context: テンプレートから実プロジェクトへ移行するための初期作業。
-  - Notes: `Size S` かつ `Risk Low` のため Plan / Intent / QA は不要。
-- **Plan**: None
-- **Intent**: None
-- **QA**: None
-- **Verification**: None
-
-### Docs-Chore-3: [Chore] Update LICENSE.txt author attribution
-
-- **Title**: [Chore] Update LICENSE.txt author attribution
-- **ID**: Docs-Chore-3
-- **Priority**: P2
-- **Size**: XS
-- **Risk**: Low
-- **Area**: Docs
-- **Dependencies**: []
-- **Goal**: `LICENSE.txt` の著作者名が正しいものに編集されている。
-- **Acceptance Criteria**:
-  - AC-001: `LICENSE.txt` の著作者表示がプロジェクトの権利者に更新されている。
-  - AC-002: README のライセンスリンクが `LICENSE.txt` を参照している。
-- **Steps**:
-  1. [ ] `LICENSE.txt` を開き、著作者名を確認する
-  2. [ ] 正しい著作者名に編集する
-  3. [ ] README のライセンスリンクを確認する
-- **Description**:
-  - Context: OSS 配布前に著作者表示をプロジェクトに合わせる。
-  - Notes: `Size XS` かつ `Risk Low` のため Plan / Intent / QA は不要。
-- **Plan**: None
-- **Intent**: None
-- **QA**: None
-- **Verification**: None
-
-### Workflow-Chore-7: [Chore] Set incremental adoption scope
-
-- **Title**: [Chore] Set incremental adoption scope
-- **ID**: Workflow-Chore-7
-- **Priority**: P2
-- **Size**: XS
-- **Risk**: Low
-- **Area**: Workflow
-- **Dependencies**: []
-- **Goal**: 既存プロジェクトへ後付け導入する場合に、導入以降に追加した docs だけが検証対象になるよう導入スコープが設定されている。
-- **Acceptance Criteria**:
-  - AC-001: 既存プロジェクトへ導入する場合、CI に `DD_SCOPE_BASE: <導入時点の commit SHA または tag>` が設定されている。
-  - AC-002: `actions/checkout` が `fetch-depth: 0` に設定され、baseline commit を参照できる。
-- **Steps**:
-  1. [ ] 導入時点の commit SHA / tag を baseline として決める
-  2. [ ] CI 環境変数に `DD_SCOPE_BASE` を設定する
-  3. [ ] `actions/checkout` を `fetch-depth: 0` にする
-- **Description**:
-  - Context: 新規プロジェクトでは不要。既存プロジェクトへ後付け導入する場合のみ着手する条件付きタスク。導入しない場合はこのタスクを削除してよい。
-  - Notes: 手順は QUICKSTART「既存プロジェクトへ後付け導入する場合」と `_docs/standards/documentation_operations.md` の段階的導入スコープを参照。`Size XS` かつ `Risk Low` のため Plan / Intent / QA は不要。
-- **Plan**: None
-- **Intent**: None
-- **QA**: None
-- **Verification**: None
+-
 
 ---
 
@@ -414,3 +315,5 @@ Risk の詳細は `_docs/standards/quality_assurance.md` を参照する。
 ---
 
 ## In Progress
+
+-

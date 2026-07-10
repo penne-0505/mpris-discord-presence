@@ -1,0 +1,24 @@
+[Unit]
+Description=MPRIS Discord Rich Presence
+Documentation=https://github.com/penne-0505/mpris-discord-presence
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+WorkingDirectory=@PROJECT_ROOT@
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONPATH=@PROJECT_ROOT@/src
+EnvironmentFile=-@ENVIRONMENT_FILE@
+ExecStart=@PYTHON@ -m mpris_discord_presence --config @CONFIG_FILE@ run
+Restart=on-failure
+RestartSec=2s
+TimeoutStopSec=8s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+RestrictAddressFamilies=AF_UNIX
+
+[Install]
+WantedBy=default.target

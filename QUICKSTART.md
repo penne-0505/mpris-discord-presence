@@ -1,126 +1,118 @@
 # Quickstart
 
-このテンプレートは、人間と Codex / Claude Code / 汎用 coding agent が `TODO.md` と `_docs/` を読みながら開発を進めるための土台です。最初のセットアップでは、プロジェクト固有情報に置き換えることと、agent が迷わない入口を残すことを優先してください。
+この手順は、まずforegroundで表示とclearを確認し、その後にsystemd user serviceへ移す順序です。
 
-## 1. 最初に読むファイル
+## 1. Runtimeを用意する
 
-- [AGENTS.md](AGENTS.md)
-- [TODO.md](TODO.md)
-- [_docs/documentation_guide.md](_docs/documentation_guide.md)
-- [_docs/standards/documentation_guidelines.md](_docs/standards/documentation_guidelines.md)
-- [_docs/standards/documentation_operations.md](_docs/standards/documentation_operations.md)
-- [_docs/standards/quality_assurance.md](_docs/standards/quality_assurance.md)
-- [_docs/standards/security_for_agents.md](_docs/standards/security_for_agents.md)
+EndeavourOS / Arch Linux:
 
-## 2. 初回セットアップ
-
-1. [README.md](README.md) をプロジェクト名、目的、使用方法に合わせて書き換える。
-2. [LICENSE.txt](LICENSE.txt) の著作者表示を確認し、必要に応じて更新する。
-3. [AGENTS.md](AGENTS.md) をプロジェクト固有のコマンド、禁止事項、実行環境に合わせて調整する。
-4. [TODO.md](TODO.md) の初期タスクを確認し、不要なテンプレート用タスクは完了後に削除する。
-5. TODO の `Risk` を確認し、`Size >= M` または `Risk >= Medium` のタスクでは Plan / Intent / QA test-plan を用意する。
-6. 実装後、必要な verification を `_docs/qa/<Area>/<slug>/verification.md` に残す。
-7. 一回限りの実装プロンプトを root に残さない。残す必要がある場合は `_evals/prompts/` 等に移し、非運用の履歴資料として明記する。
-
-### Agent lifecycle hooks
-
-このテンプレートは Codex / Claude Code 向けの lifecycle hook を同梱しています。
-
-- Codex: [.codex/hooks.json](.codex/hooks.json)
-- Claude Code: [.claude/settings.json](.claude/settings.json)
-- 共通 script: [scripts/agent-workflow-hook.mjs](scripts/agent-workflow-hook.mjs)
-
-hook は docs を自動更新しません。SessionStart で workflow context を再注入し、Stop で `qa-review` / `docs-cleanup` / `check-docs` の見落としを促し、PreToolUse で `rm` / `git rm` / file deletion / sensitive file 操作を止めます。
-
-初回利用時は各 agent の `/hooks` で内容を確認し、信頼してください。不要な場合は、hook 設定を無効化または削除してから使います。
-
-### Documentation inventory
-
-久しぶりの再開、handoff 探索、または docs が形だけになっていないか確認したい場合は、`docs-inventory` skill を使います。`docs-inventory` は read-only の棚卸しであり、archive や TODO 削除は行いません。整理を実行する場合は、棚卸し結果を確認してから `docs-cleanup` に進みます。
-
-### 既存プロジェクトへ後付け導入する場合
-
-既存 docs を一斉に検証対象にしないため、段階的導入スコープを設定します。
-
-1. 導入時点の commit SHA または tag を baseline として控える。
-2. CI の環境変数に `DD_SCOPE_BASE: <baseline commit>` を設定する。これで、導入以降に**追加された** docs だけが検証対象になり、既存 docs には手を入れずに済む。
-3. 既存 docs を編集した時点で検証対象にしたい場合だけ、`DD_SCOPE_DIFF_FILTER=ACMR` を追加する。
-4. `actions/checkout` で `fetch-depth: 0` を設定し、baseline commit を参照できるようにする。
-5. スコープ対応 validator の実行に `--allow-env`（git 使用時はさらに `--allow-run=git`）を付与する。`scripts/check-docs.sh` は設定済み。
-6. `TODO.md` は段階導入でも常に全体が検証対象である点に注意する。
-
-詳細は [段階的導入スコープ](_docs/standards/documentation_operations.md) を参照してください。
-
-## 3. Agent に渡す初回プロンプト例
-
-### Codex
-
-```text
-AGENTS.md、TODO.md、_docs/documentation_guide.md、_docs/standards/ を読んで、このリポジトリのドキュメント駆動開発ルールを把握してください。まず TODO.md の Backlog を確認し、最初に着手すべき小さなタスクを提案してください。
+```bash
+sudo pacman -S playerctl python-gobject
+python -c "import gi; gi.require_version('Playerctl', '2.0'); from gi.repository import Playerctl"
 ```
 
-```text
-qa-prepを実行して、対象タスクのintent-derived invariantとtest matrixを作成してください。
+別distributionでは、PythonのPyGObjectとPlayerctl 2.0 typelibをOS packageから導入してください。venvを使う場合はsystem site packagesが見える構成が必要です。
+
+## 2. Discord Applicationを作る
+
+[Discord Developer Portal](https://discord.com/developers/applications)でApplicationを作り、General Informationに表示されるApplication IDを控えます。
+
+このツールに必要なのはApplication IDだけです。bot、OAuth redirect、user token、client secretは設定しません。任意でRich Presence Assetsへfallback iconを登録すると、MPRIS artworkがlocalまたは欠落しているtrackにも固定画像を表示できます。
+
+## 3. Configを作る
+
+repo-localで試す場合:
+
+```bash
+cp config.example.toml config.toml
 ```
 
-```text
-実装後、qa-reviewを実行してverification verdictを出してください。
+最初に次の項目を確認します。
+
+```toml
+application_id = "123456789012345678"
+sharing_enabled = true
+deny_players = ["playerctld"]
+startup_priority = ["waydroid_mpris", "vivaldi*"]
+default_activity_type = "listening"
+
+[activity_types]
+"waydroid_mpris" = "listening"
+"vivaldi*" = "watching"
 ```
 
-```text
-docs-inventoryを実行して、TODO、intent、QA、guide、reference、draft/plan/surveyの棚卸しをしてください。自動整理はせず、次に判断すべき点を1-3件に絞ってください。
+`sharing_enabled = true`は、denylistに一致しないplayerのmetadataをprofileへ公開します。Vivaldi全体を公開したくない場合は`deny_players = ["playerctld", "vivaldi*"]`のように指定します。
+
+## 4. 診断とforeground確認
+
+Discord desktopと確認したいmedia playerを起動して実行します。
+
+```bash
+PYTHONPATH=src python -m mpris_discord_presence --config config.toml doctor
+PYTHONPATH=src python -m mpris_discord_presence --config config.toml run
 ```
 
-### Claude Code
+次を確認します。
 
-```text
-Read AGENTS.md, TODO.md, and _docs/documentation_guide.md first. Follow the documentation operations and security standard. Do not delete files with rm or git rm. Start by reviewing the initial TODO items and propose the first safe change.
-```
+1. 再生開始後、Discord profileへ1件だけ表示される。
+2. 別playerで再生を開始すると、そのplayerへ切り替わる。
+3. activeをpauseすると、別のPlayingへ戻るか、候補がなければ約1.5秒で消える。
+4. `Ctrl-C`後にPresenceが消える。
 
-### Generic Agent
-
-```text
-Use TODO.md as the task source of truth. For Size >= M or Risk >= Medium tasks, require Plan / Intent / QA test-plan. Keep intent and QA documents permanent, archive only draft/plan/survey after the archive checklist, and remove completed tasks from TODO.md only after verification.
-```
-
-## 4. 最初に完了すべき TODO
-
-- `Docs-Chore-1`: [AGENTS.md](AGENTS.md) の確認とプロジェクト固有化
-- `Docs-Chore-2`: [README.md](README.md) のプロジェクト固有化
-- `Docs-Chore-3`: [LICENSE.txt](LICENSE.txt) の著作者表示確認
-- `Workflow-Chore-7`: 既存プロジェクトへ後付け導入する場合のみ、導入スコープ（`DD_SCOPE_BASE`）を設定（新規プロジェクトでは不要）
-
-完了したタスクは [TODO.md](TODO.md) から削除します。Done / Archived セクションは作りません。
+表示されない場合は、Discord側でactivity共有が許可されているか、Application ID、IPC socket、MPRIS playerを`doctor`出力で確認します。
 
 ## 5. 検証コマンド
 
-```bash
-deno fmt --check scripts/*.mjs
-deno run --allow-read --allow-env --allow-run=git scripts/validate-frontmatter.mjs
-deno run --allow-read scripts/validate-todo.mjs
-deno run --allow-read --allow-env --allow-run=git scripts/validate-doc-links.mjs
-deno run --allow-read --allow-env --allow-run=git scripts/validate-qa.mjs
-deno run --allow-read --allow-write --allow-env --allow-run scripts/test-validators.mjs
-deno run --allow-read --allow-run=git scripts/test-agent-workflow-hook.mjs
-deno run --allow-read scripts/test-agent-workflow-smoke.mjs
-```
-
-`--allow-env` / `--allow-run=git` は段階的導入スコープ（`DD_SCOPE_BASE`）向けの権限です。スコープ未設定なら全走査の従来挙動になります。まとめて実行する場合:
+実装・設定変更後のlocal checks:
 
 ```bash
+PYTHONPATH=src python -m unittest -v
+python -m compileall -q src tests
+bash -n scripts/install-user-service.sh
 ./scripts/check-docs.sh
 ```
 
-CI では markdownlint と上記 Deno validator を実行します。手元で Node.js / npx が使える場合は、次の markdownlint も実行できます。
+## 6. user serviceへ移す
+
+installerはcheckoutの絶対pathを埋め込んだunitを生成します。事前確認:
 
 ```bash
-npx markdownlint-cli2 "_docs/**/*.md" "_evals/**/*.md" "README.md" "AGENTS.md" "TODO.md" "QUICKSTART.md" "!_docs/archives/**/*" "!_docs/standards/templates/**/*" --config .markdownlint.jsonc
+./scripts/install-user-service.sh --dry-run
 ```
 
-## 6. 配布用 ZIP
-
-テンプレートを配布する場合は、`.git` や `.jj` などの VCS メタデータを含めないでください。GitHub 標準アーカイブ、または次のコマンドを使います。
+install後、生成されたconfigへApplication IDとprivacy設定を反映します。
 
 ```bash
-scripts/create-template-archive.sh docs_driven_dev_template.zip
+./scripts/install-user-service.sh
+${EDITOR:-nano} ~/.config/mpris-discord-presence/config.toml
+systemctl --user enable --now mpris-discord-presence.service
+systemctl --user status mpris-discord-presence.service
 ```
+
+ログ:
+
+```bash
+journalctl --user -u mpris-discord-presence.service -f
+```
+
+ログはplayer instanceと接続状態だけを扱い、track titleなどを意図的に出しません。
+
+## 7. 停止・rollback
+
+```bash
+./scripts/install-user-service.sh --disable-now
+```
+
+または:
+
+```bash
+systemctl --user disable --now mpris-discord-presence.service
+```
+
+接続中のDiscord Activityをclearしてからdaemonが終了します。unitとconfigは再開・調査用に保持されます。共有だけを止めてserviceを残す場合は`sharing_enabled = false`へ変更してserviceをrestartします。
+
+## 次に読む文書
+
+- [運用ガイド](_docs/guide/Core/mpris-discord-presence/usage.md)
+- [設定・挙動リファレンス](_docs/reference/Core/mpris-discord-presence/reference.md)
+- [architecture decision](_docs/intent/Core/mpris-discord-presence/decision.md)

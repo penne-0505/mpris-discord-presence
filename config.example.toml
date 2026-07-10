@@ -1,0 +1,22 @@
+# Public Application ID from https://discord.com/developers/applications
+# You can instead set MPRIS_DISCORD_APPLICATION_ID in the service environment.
+application_id = ""
+
+# Privacy boundary: true shares every non-denied MPRIS player's metadata.
+sharing_enabled = true
+deny_players = ["playerctld"]
+
+# Used only when multiple players are already Playing at daemon startup.
+startup_priority = ["waydroid_mpris", "vivaldi*"]
+
+default_activity_type = "listening"
+clear_grace_seconds = 1.5
+reconnect_initial_seconds = 0.5
+reconnect_max_seconds = 30.0
+
+# Optional Discord application asset key used when artwork is local/unavailable.
+# fallback_art_asset = "app-icon"
+
+[activity_types]
+"waydroid_mpris" = "listening"
+"vivaldi*" = "watching"

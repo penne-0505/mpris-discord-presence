@@ -1,108 +1,81 @@
-# Documentation Driven Development Template
+# mpris-discord-presence
 
-> This README is available in English and Japanese. English speakers, please scroll down.
+Linux desktopで現在activeなMPRIS player 1件を選び、Discord Rich Presenceとして共有する常駐ツールです。Waydroid上のApple Music、browser動画、native playerを同じMPRIS境界から扱います。
 
-## 概要
+> [!WARNING]
+> 既定では、denylistに一致しない全MPRIS playerのtitle・artist・album・public HTTPS URL（queryを含む）をDiscord profileへ公開します。privateなbrowser mediaを再生する環境では、導入前に`deny_players`を設定してください。
 
-このリポジトリは私が常用しているドキュメント駆動開発 *(Documentation Driven Development)* のテンプレートです。
+## 現在の機能
 
-開発サイクルはドキュメントと [TODO.md](TODO.md) によって構成されています。
+- 全MPRIS playerの出現、消失、再生状態、metadata、seekを監視
+- 最後に`Playing`へ遷移したplayerをactiveとして自動選択
+- activeのpause/stop/終了時に、別のPlayingへfallback、または1.5秒後にclear
+- Discordの`Listening` / `Watching`をplayer globごとに設定
+- title、artist、album、position/duration、public HTTPS artwork/linkを表示
+- friend/member listのcompact statusへ`{artist} を再生中`を表示
+- Discord未起動・再起動・IPC切断後に再接続し、最新状態だけを再送
+- player denylist、共有全停止、終了時clear
+- 診断CLIとsystemd user service
 
-このテンプレートは `intent` を品質保証の一次資料として扱います。中規模以上、またはリスクのある変更では `_docs/qa/` に QA test-plan と verification を残し、テストを intent-derived invariant と acceptance criteria に紐づけます。`_docs/qa/` はテストコードの置き場ではなく、計画・対応表・検証証跡の置き場です。
+本プロジェクトはalphaです。Linux版Discord desktopのlocal IPCを直接使用し、Discord Social SDKやuser tokenは使用しません。
 
-人がサイクルを回すことも出来ますが、基本的には**Claude Codeなどのコーディングエージェント**が、この規則に従って自律的な開発を行うために設計されました。
+## 必要環境
 
-**詳細については [ガイドライン](_docs/documentation_guide.md) を参照してください。**
+- Linux desktop sessionとsession D-Bus
+- Python 3.11以降
+- PyGObjectとPlayerctl 2.0 typelib
+- MPRIS対応player
+- Discord desktop
+- Discord Developer Portalで作成したApplication ID
 
-初めて使う場合は、まず [Quickstart](QUICKSTART.md) を読んでください。
+EndeavourOS / Arch Linux:
 
-## 使用方法
+```bash
+sudo pacman -S playerctl python-gobject
+```
 
-1. このリポジトリをフォークまたはクローンします。
-2. プロジェクトに合わせてドキュメントと設定ファイルを編集します。
-3. 開発を開始します。
+## 最短セットアップ
 
-配布用 ZIP を作る場合は、`.git` / `.jj` などの VCS メタデータを含めないために、GitHub 標準アーカイブまたは `scripts/create-template-archive.sh` を使用してください。
+```bash
+cp config.example.toml config.toml
+# config.toml の application_id と privacy 設定を編集
+PYTHONPATH=src python -m mpris_discord_presence --config config.toml doctor
+PYTHONPATH=src python -m mpris_discord_presence --config config.toml run
+```
 
-ローカルでドキュメント検証をまとめて実行する場合は、`scripts/check-docs.sh` を使います。
+foregroundで期待どおり表示・clearされることを確認してからserviceを導入します。
 
-既存プロジェクトへ後付け導入する場合は、`DD_SCOPE_BASE` に導入時点の commit を設定して、既定では「導入以降に追加した docs だけ」を検証対象に絞れます。編集した既存 docs も対象にしたい場合は `DD_SCOPE_DIFF_FILTER=ACMR` を使います。設定方法は [Quickstart](QUICKSTART.md) と [documentation_operations.md](_docs/standards/documentation_operations.md) を参照してください。
+```bash
+./scripts/install-user-service.sh
+# ~/.config/mpris-discord-presence/config.toml を編集
+systemctl --user enable --now mpris-discord-presence.service
+journalctl --user -u mpris-discord-presence.service -f
+```
 
-Codex / Claude Code 向けの lifecycle hook を同梱しています。hook は docs や TODO を自動更新せず、SessionStart で workflow context を再注入し、Stop で検証・整理・archive 境界の見落としを促し、PreToolUse で代表的な恒久削除や sensitive file 操作を止めるための guardrail です。利用時は各 agent の `/hooks` で内容を確認して信頼してください。
+詳細は[Quickstart](QUICKSTART.md)、設定と挙動は[運用ガイド](_docs/guide/Core/mpris-discord-presence/usage.md)、実装境界は[リファレンス](_docs/reference/Core/mpris-discord-presence/reference.md)を参照してください。
 
-久しぶりの再開や handoff 探索では、`docs-inventory` skill が TODO、intent、QA、guide、reference、一時 docs の棚卸しを行います。これは read-only の診断であり、整理や archive 実行は `docs-cleanup` の役割です。
+## 開発
 
-root 直下の Markdown は agent 向けの active guidance として扱われます。一回限りの実装プロンプトを履歴として残す場合は `_evals/prompts/` などへ移し、非運用文書であることを明記してください。
+```bash
+PYTHONPATH=src python -m unittest -v
+python -m compileall -q src tests
+./scripts/check-docs.sh
+```
 
-### カスタマイズ
+設計判断は[_docs/intent/Core/mpris-discord-presence/decision.md](_docs/intent/Core/mpris-discord-presence/decision.md)、検証計画と結果は[_docs/qa/Core/mpris-discord-presence/](_docs/qa/Core/mpris-discord-presence/)にあります。
 
-使用に当たっては、以下のファイルをプロジェクトに合わせてカスタマイズしてください。
+## Privacy / security boundary
 
-#### AGENTS.md
+- Discordへ送るのは選択されたtrackの表示用metadataです。
+- 通常ログとtest artifactにはtrack metadataを残しません。
+- Discord credentialはpublicなApplication IDだけです。
+- user token、OAuth token、client secret、join secretを要求・保存しません。
+- local `file://` artworkは公開せず、設定したstatic application assetへfallbackします。
 
-プロジェクト固有の実行コマンド、安全基準、hook / skill の利用方針に合わせて確認・編集してください。
+## English summary
 
-#### README.md
-
-このREADME自体も、プロジェクトに合わせて編集してください。
-
-#### LICENSE.txt
-
-[LICENSE](LICENSE.txt)についても、特に著作者の表示を編集してください。
-
-## ライセンス
-
-このリポジトリは [MITライセンス](LICENSE.txt) の下でライセンスされています。
-
----
-
-## Summary
-
-This repository is a template for Documentation Driven Development that I commonly use.
-
-The development cycle is structured around documentation and [TODO.md](TODO.md).
-
-This template treats `intent` documents as primary QA inputs. Medium-sized or risky changes keep a QA test plan and verification record under `_docs/qa/`, and tests should map back to intent-derived invariants and acceptance criteria. `_docs/qa/` is for plans, traceability, and evidence; test code belongs in the codebase's normal test locations.
-
-While humans can run the cycle, it is primarily designed **for coding agents like Claude Code** to autonomously develop according to these rules.
-
-**For more details, please refer to the [Guidelines](_docs/documentation_guide.md).**
-
-If this is your first time using the template, start with the [Quickstart](QUICKSTART.md).
-
-## Usage
-
-1. Fork or clone this repository.
-2. Edit the documentation and configuration files to suit your project.
-3. Start development.
-
-When creating a distribution ZIP, use GitHub's standard archive or `scripts/create-template-archive.sh` so VCS metadata such as `.git` / `.jj` is not included.
-
-Use `scripts/check-docs.sh` to run the local documentation validators together.
-
-When adopting this template in an existing project, set `DD_SCOPE_BASE` to the adoption commit. By default, only docs added after adoption are validated. Set `DD_SCOPE_DIFF_FILTER=ACMR` if edited existing docs should also become managed. See the [Quickstart](QUICKSTART.md) and [documentation_operations.md](_docs/standards/documentation_operations.md) for setup.
-
-Lifecycle hooks for Codex and Claude Code are included. They do not update docs or TODOs automatically; they reinject workflow context on SessionStart, nudge missed verification / cleanup / archive-boundary work on Stop, and block representative permanent-deletion or sensitive-file operations on PreToolUse. Review and trust them through each agent's `/hooks` UI before use.
-
-For project resumes or handoff discovery, the `docs-inventory` skill audits TODO, intent, QA, guide, reference, and temporary docs. It is a read-only diagnosis; cleanup and archive execution belong to `docs-cleanup`.
-
-Root-level Markdown is treated as active guidance for agents. If you keep a one-off implementation prompt for history, move it under `_evals/prompts/` or another historical location and mark it as non-operational.
-
-### Customization
-
-When using this template, please customize the following files to fit your project.
-
-#### AGENTS.md
-
-Review and edit this file to match project-specific commands, safety rules, and hook / skill usage expectations.
-
-#### README.md
-
-Feel free to edit this README itself to suit your project.
-
-#### LICENSE.txt
-
-Please edit the [LICENSE](LICENSE.txt) file, particularly the author attribution.
+This Linux daemon selects the most recently activated MPRIS player and publishes one Discord Listening or Watching Rich Presence. It supports privacy deny rules, deterministic fallback, reconnect/replay, and a systemd user service. The configuration comments and CLI output are in English; the detailed project documentation is currently Japanese.
 
 ## License
-This repository is licensed under the [MIT License](LICENSE.txt).
+
+[MIT License](LICENSE.txt)
