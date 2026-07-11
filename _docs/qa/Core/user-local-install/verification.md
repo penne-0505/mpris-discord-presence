@@ -41,6 +41,12 @@ Verdict: PASS
 | `git diff --check` | PASS | whitespace errorなし。 |
 | `systemd-analyze verify <generated-unit>` | PASS with environment warning | unit固有errorなし。隔離したunit search pathのため`sysinit.target`不在warning。 |
 | isolated `--dry-run` | PASS | pathsを表示し、temporary rootを変更しない。 |
+| fresh clone of remote commit `d29d3ca` | PASS | remote branchを新規temporary directoryへclone。 |
+| fresh clone `./scripts/install-user-service.sh --enable-now` | PASS | 実config / GI / Discord IPC doctor後、user serviceをenable。 |
+| `systemctl --user restart/is-active/show` | PASS | 専用venv ExecStartでrestartし、enabled / activeを確認。 |
+| checkout mode `000`後のservice restart | PASS | sourceを読み取れない状態でも起動し、checkout非依存を実証。確認後modeを復元。 |
+| live service journal review | PASS | stop時Presence clear ACKと新runtimeのstartを確認。metadata出力なし。 |
+| GitHub Actions on PR #1 (`d29d3ca`) | PASS | Python tests / installer integrationとDocs CIがPASS。 |
 | `shellcheck` | NOT RUN | localにshellcheckがない。bash syntaxとintegration testで代替。 |
 
 ## Automated Test Results
@@ -56,12 +62,15 @@ Verdict: PASS
 - configは初回mode `0600`、再install後もsentinel contentを保持した。
 - staging failure後にactive runtime symlinkとunitが同一であることを確認した。
 - migration前unit / environmentと直前versioned runtimeの双方へrollbackできた。
-- live user serviceとDiscord / MPRIS sessionは、runtime機能を変更していないため実行対象外とした。
+- remote commitのfresh cloneから実user-local installを行い、doctorでconfig、Application ID、Playerctl GI、
+  MPRIS source、same-user Discord IPC socketを確認した。
+- checkoutを読み取り不能にした状態でserviceをrestartし、active復帰とjournal上のstartを確認した。
+- restart前processはPresence clear ACK後に停止した。通常ログへのtrack metadata出力はなかった。
 
 ## Acceptance Criteria Coverage
 
 - AC-001: PASS — system-site-packages venvとinstalled CLIをintegration testで確認。
-- AC-002: PASS — generated unitにcheckout path / `PYTHONPATH`がない。
+- AC-002: PASS — generated unitにcheckout path / `PYTHONPATH`がなく、checkout mode `000`でもrestartした。
 - AC-003: PASS — config保持、staging failure、migration rollbackをsentinelで確認。
 - AC-004: PASS — README / Quickstart / guide / referenceをinstall / update / rollbackとsupport境界へ同期。
 - AC-005: PASS — installer integrationを追加し、GitHub Actions test workflowへ組み込んだ。
@@ -76,8 +85,7 @@ Verdict: PASS
 
 ## Deferred / Not Covered
 
-- GitHub-hosted Actions自体はpush前のため未実行。workflowと同じlocal commandsはPASS。
-- live Discord / MPRIS behaviorはinstall境界変更のOut of Scopeであり、既存69 testsによるbehavior preservationを確認した。
+- Discord profileの目視は再実行していない。same-user IPC検出、service start、clear ACKと既存runtime verificationで境界を確認した。
 
 ## Residual Risks
 
