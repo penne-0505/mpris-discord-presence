@@ -26,3 +26,9 @@ jobs:
 
       - name: Compile check
         run: python -m compileall -q src tests
+
+      - name: Build distributions
+        run: python -m pip wheel --no-deps --no-build-isolation --wheel-dir /tmp/wheels .
+
+      - name: User-local installer integration
+        run: ./scripts/test-install-user-service.sh

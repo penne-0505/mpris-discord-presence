@@ -1,31 +1,50 @@
 # Quickstart
 
-この手順は、まずforegroundで表示とclearを確認し、その後にsystemd user serviceへ移す順序です。
+この手順は、検証済みtagのsourceからuser-local runtimeを構築し、まずforegroundで表示とclearを確認してから
+systemd user serviceへ移す順序です。
+
+サポート対象はArch Linux / EndeavourOSと[Discord公式Linux client](https://discord.com/download)です。
+他distribution、Flatpak / Snap、Vesktopなどの非公式clientは動作保証の対象外です。
 
 ## 1. Runtimeを用意する
 
 EndeavourOS / Arch Linux:
 
 ```bash
-sudo pacman -S playerctl python-gobject
+sudo pacman -S git playerctl python-gobject python-pip
 python -c "import gi; gi.require_version('Playerctl', '2.0'); from gi.repository import Playerctl"
 ```
 
-別distributionでは、PythonのPyGObjectとPlayerctl 2.0 typelibをOS packageから導入してください。venvを使う場合はsystem site packagesが見える構成が必要です。
+installerは専用venvを`--system-site-packages`付きで作成し、上記OS packageのGI bindingsを利用します。
 
-## 2. Discord Applicationを作る
+## 2. 検証済みsourceを取得する
+
+GitHub Releasesで案内されたtagを指定します。例:
+
+```bash
+git clone --branch <release-tag> --depth 1 \
+  https://github.com/penne-0505/mpris-discord-presence.git
+cd mpris-discord-presence
+```
+
+## 3. Discord Applicationを作る
 
 [Discord Developer Portal](https://discord.com/developers/applications)でApplicationを作り、General Informationに表示されるApplication IDを控えます。
 
 このツールに必要なのはApplication IDだけです。bot、OAuth redirect、user token、client secretは設定しません。任意でRich Presence Assetsへfallback iconを登録すると、MPRIS artworkがlocalまたは欠落しているtrackにも固定画像を表示できます。
 
-## 3. Configを作る
+## 4. User-local runtimeとConfigを作る
 
-repo-localで試す場合:
+導入先は`~/.local/share/mpris-discord-presence/venv`、configは
+`~/.config/mpris-discord-presence/config.toml`です。
 
 ```bash
-cp config.example.toml config.toml
+./scripts/install-user-service.sh
+${EDITOR:-nano} ~/.config/mpris-discord-presence/config.toml
 ```
+
+installerは現在のsourceからpackageを専用venvへ導入するため、成功後はcheckoutを移動・削除してもruntimeが動作します。
+既存configは再installやupdateで上書きしません。
 
 最初に次の項目を確認します。
 
@@ -43,13 +62,15 @@ default_activity_type = "listening"
 
 `sharing_enabled = true`は、denylistに一致しないplayerのmetadataをprofileへ公開します。Vivaldi全体を公開したくない場合は`deny_players = ["playerctld", "vivaldi*"]`のように指定します。
 
-## 4. 診断とforeground確認
+## 5. 診断とforeground確認
 
 Discord desktopと確認したいmedia playerを起動して実行します。
 
 ```bash
-PYTHONPATH=src python -m mpris_discord_presence --config config.toml doctor
-PYTHONPATH=src python -m mpris_discord_presence --config config.toml run
+~/.local/share/mpris-discord-presence/venv/bin/mpris-discord-presence \
+  --config ~/.config/mpris-discord-presence/config.toml doctor
+~/.local/share/mpris-discord-presence/venv/bin/mpris-discord-presence \
+  --config ~/.config/mpris-discord-presence/config.toml run
 ```
 
 次を確認します。
@@ -61,7 +82,7 @@ PYTHONPATH=src python -m mpris_discord_presence --config config.toml run
 
 表示されない場合は、Discord側でactivity共有が許可されているか、Application ID、IPC socket、MPRIS playerを`doctor`出力で確認します。
 
-## 5. 検証コマンド
+## 6. 検証コマンド
 
 実装・設定変更後のlocal checks:
 
@@ -69,22 +90,21 @@ PYTHONPATH=src python -m mpris_discord_presence --config config.toml run
 PYTHONPATH=src python -m unittest -v
 python -m compileall -q src tests
 bash -n scripts/install-user-service.sh
+./scripts/test-install-user-service.sh
 ./scripts/check-docs.sh
 ```
 
-## 6. user serviceへ移す
+## 7. user serviceをenableする
 
-installerはcheckoutの絶対pathを埋め込んだunitを生成します。事前確認:
+事前確認:
 
 ```bash
 ./scripts/install-user-service.sh --dry-run
 ```
 
-install後、生成されたconfigへApplication IDとprivacy設定を反映します。
+foreground確認後にenableします。configとunitはすでにuser-local pathへ配置されています。
 
 ```bash
-./scripts/install-user-service.sh
-${EDITOR:-nano} ~/.config/mpris-discord-presence/config.toml
 systemctl --user enable --now mpris-discord-presence.service
 systemctl --user status mpris-discord-presence.service
 ```
@@ -97,7 +117,21 @@ journalctl --user -u mpris-discord-presence.service -f
 
 ログはplayer instanceと接続状態だけを扱い、track titleなどを意図的に出しません。
 
-## 7. 停止・rollback
+## 8. Update
+
+新しい検証済みtagを取得し、そのcheckoutでinstallerを再実行します。既存configは保持され、直前の完全なruntimeが
+rollback用に残ります。
+
+```bash
+git fetch --tags
+git checkout <new-release-tag>
+./scripts/install-user-service.sh
+~/.local/share/mpris-discord-presence/venv/bin/mpris-discord-presence \
+  --config ~/.config/mpris-discord-presence/config.toml doctor
+systemctl --user restart mpris-discord-presence.service
+```
+
+## 9. 停止・rollback
 
 ```bash
 ./scripts/install-user-service.sh --disable-now
@@ -110,6 +144,15 @@ systemctl --user disable --now mpris-discord-presence.service
 ```
 
 接続中のDiscord Activityをclearしてからdaemonが終了します。unitとconfigは再開・調査用に保持されます。共有だけを止めてserviceを残す場合は`sharing_enabled = false`へ変更してserviceをrestartします。
+
+直前のuser-local runtimeへ戻す場合:
+
+```bash
+./scripts/install-user-service.sh --rollback
+```
+
+初回のuser-local移行前に既存unitがあった場合は、そのunitも`.previous`として保持され、runtime履歴がない場合の
+`--rollback`で復元されます。configはrollbackでも変更しません。
 
 ## 次に読む文書
 

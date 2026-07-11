@@ -3,12 +3,13 @@ title: MPRIS Discord Presence operations guide
 status: active
 draft_status: n/a
 created_at: 2026-07-10
-updated_at: 2026-07-10
+updated_at: 2026-07-11
 references:
   - "README.md"
   - "QUICKSTART.md"
   - "_docs/reference/Core/mpris-discord-presence/reference.md"
   - "_docs/intent/Core/mpris-discord-presence/decision.md"
+  - "_docs/qa/Core/user-local-install/verification.md"
 related_issues: []
 related_prs: []
 ---
@@ -22,7 +23,7 @@ service状態とprivacy設定は次で確認する。
 ```bash
 systemctl --user status mpris-discord-presence.service
 sed -n '1,160p' ~/.config/mpris-discord-presence/config.toml
-PYTHONPATH=src python -m mpris_discord_presence \
+~/.local/share/mpris-discord-presence/venv/bin/mpris-discord-presence \
   --config ~/.config/mpris-discord-presence/config.toml doctor
 ```
 
@@ -136,13 +137,21 @@ daemonを再起動すると、最新Activityまたはclearを再送する。
 systemctl --user restart mpris-discord-presence.service
 ```
 
+## Install boundary
+
+サポート対象はArch Linux / EndeavourOSとDiscord公式Linux clientである。runtimeは
+`~/.local/share/mpris-discord-presence/venv`の専用venv、configは
+`~/.config/mpris-discord-presence/config.toml`に置く。serviceはcheckoutや`PYTHONPATH`を参照しない。
+
 ## Update and rollback
 
-checkoutを移動した場合はunit内の絶対pathが変わるため、installerを再実行する。
+新しい検証済みtagへcheckoutを切り替え、installerを再実行する。package導入が成功するまで現行runtimeとunitは変更されず、
+既存configは常に保持される。
 
 ```bash
 ./scripts/install-user-service.sh
 systemctl --user restart mpris-discord-presence.service
 ```
 
-rollbackはserviceをdisable/stopする。installerはunitやconfigを削除しないため、調査後に同じ設定で再開できる。
+直前の完全なruntimeへ戻す場合は`./scripts/install-user-service.sh --rollback`を使う。停止だけなら
+`--disable-now`を使う。installerはconfigを削除または上書きしないため、同じ設定で再開できる。
