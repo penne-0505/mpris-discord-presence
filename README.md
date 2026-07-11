@@ -17,37 +17,42 @@ Linux desktopで現在activeなMPRIS player 1件を選び、Discord Rich Presenc
 - player denylist、共有全停止、終了時clear
 - 診断CLIとsystemd user service
 
-本プロジェクトはalphaです。Linux版Discord desktopのlocal IPCを直接使用し、Discord Social SDKやuser tokenは使用しません。
+本プロジェクトはalphaです。サポート対象はArch Linux / EndeavourOSのdesktop sessionと、Discord公式Linux clientです。
+公式clientのlocal IPCを直接使用し、Discord Social SDKやuser tokenは使用しません。他distributionやFlatpak / Snap、
+Vesktopなどの非公式clientはサポート対象外です。
 
 ## 必要環境
 
-- Linux desktop sessionとsession D-Bus
+- Arch LinuxまたはEndeavourOSのdesktop sessionとsession D-Bus
 - Python 3.11以降
 - PyGObjectとPlayerctl 2.0 typelib
 - MPRIS対応player
 - Discord desktop
 - Discord Developer Portalで作成したApplication ID
 
-EndeavourOS / Arch Linux:
+OS package:
 
 ```bash
-sudo pacman -S playerctl python-gobject
+sudo pacman -S git playerctl python-gobject python-pip
 ```
 
 ## 最短セットアップ
 
 ```bash
-cp config.example.toml config.toml
-# config.toml の application_id と privacy 設定を編集
-PYTHONPATH=src python -m mpris_discord_presence --config config.toml doctor
-PYTHONPATH=src python -m mpris_discord_presence --config config.toml run
+git clone https://github.com/penne-0505/mpris-discord-presence.git
+cd mpris-discord-presence
+./scripts/install-user-service.sh
+${EDITOR:-nano} ~/.config/mpris-discord-presence/config.toml
+~/.local/share/mpris-discord-presence/venv/bin/mpris-discord-presence \
+  --config ~/.config/mpris-discord-presence/config.toml doctor
+~/.local/share/mpris-discord-presence/venv/bin/mpris-discord-presence \
+  --config ~/.config/mpris-discord-presence/config.toml run
 ```
 
-foregroundで期待どおり表示・clearされることを確認してからserviceを導入します。
+installerは`--system-site-packages`付き専用venvへpackageを導入します。導入後のruntimeはcheckoutを参照しません。
+foregroundで期待どおり表示・clearされることを確認してからserviceをenableします。
 
 ```bash
-./scripts/install-user-service.sh
-# ~/.config/mpris-discord-presence/config.toml を編集
 systemctl --user enable --now mpris-discord-presence.service
 journalctl --user -u mpris-discord-presence.service -f
 ```
@@ -59,6 +64,7 @@ journalctl --user -u mpris-discord-presence.service -f
 ```bash
 PYTHONPATH=src python -m unittest -v
 python -m compileall -q src tests
+./scripts/test-install-user-service.sh
 ./scripts/check-docs.sh
 ```
 

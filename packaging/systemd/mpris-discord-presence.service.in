@@ -6,11 +6,9 @@ PartOf=graphical-session.target
 
 [Service]
 Type=simple
-WorkingDirectory=@PROJECT_ROOT@
 Environment=PYTHONUNBUFFERED=1
-Environment=PYTHONPATH=@PROJECT_ROOT@/src
 EnvironmentFile=-@ENVIRONMENT_FILE@
-ExecStart=@PYTHON@ -m mpris_discord_presence --config @CONFIG_FILE@ run
+ExecStart=@EXECUTABLE@ --config @CONFIG_FILE@ run
 Restart=on-failure
 RestartSec=2s
 TimeoutStopSec=8s

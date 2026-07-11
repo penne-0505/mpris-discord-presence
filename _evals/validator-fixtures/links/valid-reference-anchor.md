@@ -5,6 +5,6 @@ surface.
 
 [Quickstart][quickstart]
 
-[Quickstart heading](../../../QUICKSTART.md#5-検証コマンド)
+[Quickstart heading](../../../QUICKSTART.md#6-検証コマンド)
 
 [quickstart]: ../../../QUICKSTART.md
