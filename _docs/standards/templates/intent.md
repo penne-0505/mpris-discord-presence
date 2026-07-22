@@ -2,6 +2,7 @@
 title: Intent / Decision Title
 status: active  # allowed: proposed | active | superseded | obsolete
 draft_status: n/a  # allowed: idea | exploring | paused | n/a
+intent_schema: 2
 created_at: YYYY-MM-DD
 updated_at: YYYY-MM-DD
 references:
@@ -17,14 +18,14 @@ related_prs: []
 ## Context
 - 背景と課題
 
-## Decision
-- 採用した方針・設計
+## Decisions
 
-## Alternatives
-- 検討した代替案と不採用理由
+### DEC-001: Decision title
 
-## Rationale
-- 判断根拠・トレードオフ
+- **What**: 採用した方針・設計
+- **Why**: 解決する問題、守る性質、避ける失敗との因果
+- **Change freedom**: Why を保つ限り変更できる実装方式・値・構造
+<!-- Optional fields: `- **Why not**: 一見妥当に見える不採用案と、その案では目的を満たせない理由`, `- **Revisit when**: 再検討を可能にする証拠・条件` -->
 
 ## Consequences / Impact
 - 影響範囲（API/データ/セキュリティ/パフォーマンス など）
@@ -35,14 +36,13 @@ related_prs: []
 - QA test-plan で確認すべき観点
 
 ## Intent-derived Invariants
-<!-- 安定 ID を振り、コードから一行で引用できる粒度・断定形で書く。非自明なコードはこの ID を `// intent: INV-00X (<Area>/<slug>) — ...` でアンカーできる。詳細は quality_assurance.md の intent ↔ code traceability を参照。 -->
-- INV-001:
-- INV-002:
-- INV-003:
+<!-- 任意。active decision 下で実装方式が変わっても破れない結果だけを書く。比較条件、現行値、migration 中だけの保全条件を INV にしない。0 件なら None。 -->
+None
+<!-- 必要な場合の形式: `- INV-001 (from DEC-001): 実装方式が変わっても破れない結果` -->
 
 ## Enforced in (optional)
-<!-- 任意。各 INV が体現・enforce されている場所への back-reference。code 起点だけでなく intent 起点でも実装箇所へ辿れるようにする。 -->
-- INV-001:
+<!-- 任意。各 DEC / INV が体現・enforce されている場所への back-reference。code 起点だけでなく intent 起点でも実装箇所へ辿れるようにする。 -->
+None
 
 ## Rollback / Follow-ups
 - ロールバック方針や追加フォロー項目

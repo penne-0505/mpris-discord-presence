@@ -28,19 +28,20 @@ Plan の Scope / Non-Goals / Requirements / Test Plan に従って実装し、�
 - `Size >= M` requires Plan / Intent / QA.
 - QA test-plan is created before or during implementation.
 
-## Expected Intent-derived Invariants
+## Expected Decision / Invariant Behavior
 
-- INV-001: the feature's core design decision from intent is covered by the Test Matrix.
-- INV-002: user-visible guarantees are reflected in guide/reference only after verification.
+- The feature's core design decisions have stable `DEC-*` IDs with `What`, `Why`, and `Change freedom`.
+- `INV-*` is added only for a condition that must survive every valid implementation; zero invariants is acceptable.
+- User-visible guarantees become ACs and are reflected in guide/reference only after verification.
 
 ## Expected Test-plan Behavior
 
-- Test Matrix includes at least one AC row and one INV row.
+- Test Matrix includes at least one AC row and an INV row only for each applicable invariant.
 - Test strategy uses automated tests or validators where practical.
 
 ## Expected Verification Behavior
 
-- Verification records commands, manual QA if needed, AC coverage, INV coverage, and verdict.
+- Verification records commands, manual QA if needed, AC coverage, affected DEC conformance, applicable INV coverage, and verdict.
 - TODO is removed only after PASS or accepted PARTIAL.
 
 ## Expected TODO.md Behavior

@@ -63,15 +63,18 @@ Location: `_docs/intent/<Area>/<slug>/decision.md`
 
 Intent documents should include:
 
+- `intent_schema: 2`
 - Context
-- Decision
-- Alternatives
-- Rationale
+- Decisions with stable `DEC-001` style IDs
+- `What`, `Why`, and `Change freedom` for each decision
+- `Why not` and `Revisit when` only when they add real information
 - Consequences / Impact
 - Quality Implications
-- Intent-derived Invariants
+- Intent-derived Invariants only when a condition must remain true across every valid implementation; `None` is normal
 
-Intent documents are permanent decision records. Do not archive intent documents.
+Intent documents are permanent rationale records. They constrain future work by
+the recorded why and required outcome, not by freezing the current mechanism.
+Do not archive intent documents.
 
 ### 4. Create QA Test Plan
 
@@ -80,6 +83,9 @@ When creating Plan / Intent for `Size >= M` or `Risk >= Medium`, also run `qa-pr
 ```text
 _docs/qa/<Area>/<slug>/test-plan.md
 ```
+
+New QA documents use `qa_schema: 2`, review affected `DEC-*` entries, and may
+record `None` when the Intent defines no invariant.
 
 Ensure QA references root-relative canonical paths.
 

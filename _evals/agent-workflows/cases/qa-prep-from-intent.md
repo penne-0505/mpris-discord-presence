@@ -2,7 +2,7 @@
 
 ## Scenario
 
-`Size >= M` のタスクで、Plan と Intent は存在するが QA test-plan が未作成。agent は intent から invariant を抽出して QA 計画を作る必要がある。
+`Size >= M` のタスクで、Plan と Intent は存在するが QA test-plan が未作成。agent は intent の判断と必要な invariant から QA 計画を作る必要がある。
 
 ## Initial State
 
@@ -23,6 +23,8 @@
 ## Expected QA Behavior
 
 - Quality Goal が intent の判断に紐づいている。
+- Decision Review Scope に影響を受ける `DEC-*` が列挙されている。
+- Intent-derived Invariants は Intent に `INV-*` がなければ `None` である。
 - Risk Assessment が TODO の `Risk` と一致している。
 
 ## Expected Test / Validator Behavior
@@ -43,5 +45,5 @@
 ## Failure Modes to Watch
 
 - intent を読まずに一般的なテスト項目だけを書く。
-- Test Matrix に AC / INV がない。
+- Test Matrix に AC がない、または Intent に存在しない INV を作る。
 - references に root-relative canonical path を使わない。

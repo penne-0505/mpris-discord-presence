@@ -69,6 +69,8 @@ python -m compileall -q src tests
 
 Design decisions can be found in [_docs/intent/Core/mpris-discord-presence/decision.md](_docs/intent/Core/mpris-discord-presence/decision.md), and verification plans and results are in [_docs/qa/Core/mpris-discord-presence/](_docs/qa/Core/mpris-discord-presence/).
 
+The docs-driven workflow revision is pinned in [`docs-template.lock.json`](docs-template.lock.json). Future updates use the paired `docs-template-migration` skill and a tag/full-SHA three-way migration; `DD_SCOPE_BASE` remains a separate validator-scope setting.
+
 ## Privacy / security boundary
 
 - Only the display metadata for the selected track is sent to Discord.

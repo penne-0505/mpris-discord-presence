@@ -41,7 +41,8 @@ related_prs: []
   - E2E:
   - Manual QA:
   - Validator / static check:
-- Acceptance criteria と intent-derived invariant をどの確認手段に紐づけるか。
+- Acceptance criteria と、該当する intent-derived invariant をどの確認手段に紐づけるか。
+- 実装が影響する `DEC-xxx` と、その `Why` / `Change freedom` の review 方針。
 - `Size >= M` または `Risk >= Medium` の場合、実装前または実装中に QA test-plan を作成する。
 - Risk High / Critical の場合は rollback / recovery / data safety / security の確認観点を含める。
 

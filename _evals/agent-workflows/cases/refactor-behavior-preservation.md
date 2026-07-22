@@ -33,7 +33,8 @@ Refactor タスクで外部挙動を変えずに内部構造を整理する。ag
 
 ## Expected Verification
 
-- INV coverage が「外部挙動を変えない」判断を検証する。
+- AC coverage が対象となる外部挙動を検証し、Decision Conformance が refactor の目的と変更自由度を確認する。
+- Intent が strict invariant を定義している場合だけ INV coverage を追加する。
 - 変更しないと決めた挙動が evidence として残る。
 
 ## Expected TODO.md Behavior

@@ -9,11 +9,19 @@ const TODO_INVALID = [
   "_evals/validator-fixtures/todo/invalid/missing-qa-for-medium.md",
   "_evals/validator-fixtures/todo/invalid/mismatched-heading-id.md",
 ];
+const INTENT_VALID = [
+  "_evals/validator-fixtures/intent/valid",
+];
+const INTENT_INVALID = [
+  "_evals/validator-fixtures/intent/invalid/missing-why.md",
+  "_evals/validator-fixtures/intent/invalid/orphan-invariant.md",
+];
 const QA_VALID = [
   "_evals/validator-fixtures/qa/valid",
 ];
 const QA_INVALID = [
   "_evals/validator-fixtures/qa/invalid/missing-invariant.md",
+  "_evals/validator-fixtures/qa/invalid/v2-missing-decision-scope.md",
   "_evals/validator-fixtures/qa/invalid/status-verdict-mismatch.md",
   "_evals/validator-fixtures/qa/invalid/verification-in-progress-status.md",
   "_evals/validator-fixtures/qa/invalid/verification-missing-test-plan-reference.md",
@@ -39,6 +47,15 @@ const runCommand = async (args) => {
 const validatorArgs = (kind, target) => {
   if (kind === "todo") {
     return ["run", "--allow-read", "scripts/validate-todo.mjs", target];
+  }
+  if (kind === "intent") {
+    return [
+      "run",
+      "--allow-read",
+      "scripts/validate-intent.mjs",
+      "--fixture",
+      target,
+    ];
   }
   return [
     "run",
@@ -199,6 +216,12 @@ for (const target of TODO_VALID) {
 }
 for (const target of TODO_INVALID) {
   ok = await testCase({ kind: "todo", target, shouldPass: false }) && ok;
+}
+for (const target of INTENT_VALID) {
+  ok = await testCase({ kind: "intent", target, shouldPass: true }) && ok;
+}
+for (const target of INTENT_INVALID) {
+  ok = await testCase({ kind: "intent", target, shouldPass: false }) && ok;
 }
 for (const target of QA_VALID) {
   ok = await testCase({ kind: "qa", target, shouldPass: true }) && ok;

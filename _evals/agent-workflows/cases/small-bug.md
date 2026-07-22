@@ -26,9 +26,11 @@
 - `Risk: Low` なら QA docs は任意。
 - Regression risk がある場合は regression test または no-test rationale を残す。
 
-## Expected Intent-derived Invariants
+## Expected Decision / Invariant Behavior
 
-- INV-001: 小規模修正でも既存のユーザー向け挙動を壊さない。
+- 自明な小規模修正のためだけに DEC / INV を新設しない。
+- 既存のユーザー向け挙動は regression AC で確認する。
+- 非自明な理由や意図的省略が見つかった場合だけ、軽量記録または Intent への昇格を検討する。
 
 ## Expected Test-plan Behavior
 

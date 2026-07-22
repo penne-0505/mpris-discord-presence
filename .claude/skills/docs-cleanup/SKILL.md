@@ -90,6 +90,7 @@ When isolating a failure, use the same permissions as the wrapper:
 deno run --allow-read --allow-env --allow-run=git scripts/validate-frontmatter.mjs
 deno run --allow-read scripts/validate-todo.mjs
 deno run --allow-read --allow-env --allow-run=git scripts/validate-doc-links.mjs
+deno run --allow-read --allow-env --allow-run=git scripts/validate-intent.mjs
 deno run --allow-read --allow-env --allow-run=git scripts/validate-qa.mjs
 ```
 

@@ -24,12 +24,12 @@ Use this skill for:
 1. Read the TODO task.
 2. Read the Plan.
 3. Read the Intent.
-4. Extract the design decisions that must be preserved.
+4. Extract the affected `DEC-*` decisions and their rationale.
 5. Confirm or strengthen Acceptance Criteria.
-6. Create Intent-derived Invariants.
+6. Create `INV-*` only for conditions that every valid implementation must preserve; otherwise record `None`.
 7. Write Risk Assessment.
 8. Build the Test Matrix.
-9. Assign each AC / INV to automated tests, manual QA, validator, static check, or diff review.
+9. Assign every AC and applicable INV to automated tests, manual QA, validator, static check, or diff review.
 10. Create or update `_docs/qa/<Area>/<slug>/test-plan.md`.
 11. Update the TODO task's `QA:` field.
 
@@ -45,10 +45,12 @@ Use this skill for:
 
 The QA test plan must include:
 
+- `qa_schema: 2`
 - Source of Intent
+- Decision Review Scope with affected `DEC-*` IDs
 - Quality Goal
 - Acceptance Criteria
-- Intent-derived Invariants
+- Intent-derived Invariants, or `None`
 - Risk Assessment
 - Test Strategy
 - Test Matrix
@@ -62,4 +64,7 @@ The QA test plan must include:
 | ID | Source | Requirement / Invariant | Test Type | Command / File | Expected Evidence | Status |
 |---|---|---|---|---|---|---|
 | AC-001 | TODO | Size >= M tasks require Plan / Intent / QA. | validator | `deno run --allow-read scripts/validate-todo.mjs` | Invalid task without QA fails validation. | planned |
-| INV-001 | intent | QA docs must not be archived. | validator | `deno run --allow-read --allow-env --allow-run=git scripts/validate-doc-links.mjs` | `_docs/archives/qa/**` is rejected. | planned |
+
+Add an `INV-*` row only when the Intent defines that invariant. Do not turn a
+current numeric value, algorithm, or file layout into a test contract merely
+because it appears in the implementation.

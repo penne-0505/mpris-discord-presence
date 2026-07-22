@@ -2,7 +2,7 @@
 
 ## 0. System Metadata
 
-- **Current Max ID**: `Next ID No: 12` (タスク追加時にインクリメント必須)
+- **Current Max ID**: `Next ID No: 13` (タスク追加時にインクリメント必須)
 - **ID Source of Truth**: このファイルの `Next ID No` 行が、全プロジェクトにおける唯一の ID 発番元である。
 
 ## 1. Task Lifecycle (State Machine)
@@ -110,7 +110,7 @@
 | `Category Refactor` | QA test-plan に behavior-preservation checks を含める。 |
 | Agent workflow / validator / CI / Skill / documentation rule 変更 | QA test-plan に agent misbehavior checks を含める。 |
 
-`Size XS/S` かつ `Risk Low` でも、将来の作業者が未実装と誤認しそうな非対応・制限・省略は intentional omission risk として扱う。その場合は、必須フィールドを増やさず、TODO Description / PR / commit、または必要に応じて Plan Non-Goals / Intent Alternatives に理由を残す。
+`Size XS/S` かつ `Risk Low` でも、将来の作業者が未実装と誤認しそうな非対応・制限・省略は intentional omission risk として扱う。その場合は、必須フィールドを増やさず、TODO Description / PR / commit、または必要に応じて Plan Non-Goals / Intent の DEC（Why / Why not）に理由を残す。
 
 ## 4. Completion Rules
 
@@ -197,7 +197,7 @@ Risk の詳細は `_docs/standards/quality_assurance.md` を参照する。
 
 1. `Size >= M` なら Plan / Intent / QA が存在することを確認する。
 2. `Risk >= Medium` なら Intent / QA が存在することを確認する。
-3. QA test-plan の Test Matrix が、主要 AC / INV を最低 1 つの確認手段へ割り当てていることを確認する。
+3. QA test-plan の Test Matrix が主要 AC と、存在する場合の INV を最低 1 つの確認手段へ割り当て、影響する DEC の review scope を示していることを確認する。
 4. Dependencies が解決済みか確認する。
 5. 全てクリアした場合のみ `Ready` セクションへ移動する。
 
@@ -254,7 +254,7 @@ Risk の詳細は `_docs/standards/quality_assurance.md` を参照する。
 - **Goal**: 新規メンバーが onboarding command で初期診断を実行できる。
 - **Acceptance Criteria**:
   - AC-001: command が環境診断を実行し、結果を標準出力に表示する。
-  - AC-002: intent-derived invariant に基づくテストまたは validator が存在する。
+  - AC-002: decision の Why / Change freedom が記録され、必要な場合だけ intent-derived invariant に基づくテストまたは validator が存在する。
 - **Steps**:
   1. [ ] Plan の Scope / Non-Goals を確認する
   2. [ ] QA test-plan の Test Matrix に従って実装と検証を進める

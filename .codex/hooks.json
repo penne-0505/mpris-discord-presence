@@ -13,6 +13,18 @@
         ]
       }
     ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && deno run --allow-read --allow-run=git scripts/agent-workflow-hook.mjs user-prompt-submit",
+            "timeout": 30,
+            "statusMessage": "Rechecking scope and evidence"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash|apply_patch|Edit|Write",

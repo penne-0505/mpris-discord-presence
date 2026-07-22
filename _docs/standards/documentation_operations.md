@@ -56,7 +56,7 @@ references:
 
 1. **標準フロー**: `draft/survey → plan → intent → qa/test-plan → implementation → qa/verification → guide/reference`
    - 大規模な変更 (`Size >= M`) や、設計判断が必要な機能追加に適用。
-   - Plan は QA Plan を含め、QA test-plan は intent-derived invariant と acceptance criteria を Test Matrix へ変換する。
+   - Plan は QA Plan を含め、QA test-plan は acceptance criteria と、存在する場合の intent-derived invariant を Test Matrix へ変換する。変更が影響する DEC は review scope として扱う。
    - `draft` / `survey` / `plan` は、対応する `intent` が存在し、archive checklist を満たす場合のみ archives へ移送できる。
 
 2. **Risk-based QA flow**:
@@ -69,7 +69,7 @@ references:
 3. **軽量フロー (Fast Track)**: `TODO定義(Steps) → 実装 → 必要なら intent/guide/reference`
    - `Size XS/S` かつ `Risk Low` の小規模修正に適用。
    - TODO 上でタスク定義、Acceptance Criteria、Steps が明確である場合、Plan / Intent / QA を `None` にできる。
-   - ただし、将来の作業者が未実装と誤認しそうな非対応・制限・省略は intentional omission risk として扱い、TODO Description / PR / commit、または必要に応じて Plan Non-Goals / Intent Alternatives に理由を残す。
+   - ただし、将来の作業者が未実装と誤認しそうな非対応・制限・省略は intentional omission risk として扱い、TODO Description / PR / commit、または必要に応じて Plan Non-Goals / Intent の DEC（Why / Why not）に理由を残す。
    - ただし、Bug / Refactor などで再発防止や挙動維持の根拠が必要な場合は、PR / commit / verification に残す。
 
 4. **QA documents のライフサイクル**
@@ -162,6 +162,15 @@ references:
 | `qa_status` | `planned` \| `in-progress` \| `verified` \| `partial` \| `failed` \| `blocked` |
 | `risk` | `Low` \| `Medium` \| `High` \| `Critical` |
 
+新しい why-first schema を使う文書は、次の marker を持つ。marker のない既存文書は legacy schema として
+引き続き受理し、一斉移行を要求しない。既存文書のリンク・typo・metadata 修正だけなら marker は不要だが、
+decision の意味または QA 契約を追加・変更する場合は対応する schema v2 へ移行する。
+
+| 対象 | フィールド | 値 |
+| --- | --- | --- |
+| `_docs/intent/**/*.md` | `intent_schema` | `2` |
+| `_docs/qa/**/*.md` | `qa_schema` | `2` |
+
 draft の stale 管理向け任意フィールド:
 
 - `stale_exempt_until: YYYY-MM-DD`
@@ -196,7 +205,8 @@ draft の stale 管理向け任意フィールド:
 - Risk level
 - QA document
 - Test strategy
-- Acceptance criteria と intent-derived invariant の確認手段
+- Acceptance criteria と、存在する場合の intent-derived invariant の確認手段
+- 影響する `DEC-xxx` の review 方針
 
 ## Deployment / Rollout
 - デプロイ手順、ロールバック方針
@@ -208,6 +218,7 @@ draft の stale 管理向け任意フィールド:
 ## Source of Intent
 ## Quality Goal
 ## Acceptance Criteria
+## Decision Review Scope
 ## Intent-derived Invariants
 ## Risk Assessment
 ## Test Strategy
@@ -227,11 +238,37 @@ draft の stale 管理向け任意フィールド:
 ## Automated Test Results
 ## Manual QA Results
 ## Acceptance Criteria Coverage
+## Decision Conformance
 ## Invariant Coverage
 ## Deferred / Not Covered
 ## Residual Risks
 ## Follow-up TODOs
 ```
+
+## Template revision provenance
+
+この template を適用した project が後続 release を継続的に取り込めるよう、upstream template の provenance を `docs-template.lock.json` に記録する。雛形は root の `docs-template.lock.example.json` とする。
+
+```json
+{
+  "schema": 1,
+  "source": "https://github.com/penne-0505/docs_driven_dev_template.git",
+  "revision": {
+    "tag": "v1.0.0",
+    "commit": "<tagが解決するfull 40-character commit SHA>"
+  }
+}
+```
+
+- **更新単位**: upstream が推奨する immutable release tag を使う。branch 名や moving tip を lock に記録しない。
+- **実体の固定**: tag 名だけでなく、その tag が解決する full commit SHA を記録する。後から同名 tag の解決先が変わった場合は migration を停止する。
+- **初回導入**: tagged release から開始した project は、雛形を `docs-template.lock.json` へコピーし、採用 tag の full SHA を記録する。lock は project の tracked file とする。
+- **通常更新**: lock の revision を `B`、次の推奨 tag を `U` とし、`docs-template-migration` skill で project customization を含む three-way migration を行う。`U` の配布ファイルを reconciliation し、compatibility checks が成功した後に、lock を最後の migration write として `U` へ進める。closure verification では更新後の tag と full SHA を確認する。
+- **schema 状態との分離**: lock は統合済み upstream revision だけを示す。strict schema migration の完了・延期・残リスクは QA verification に記録し、lock schema へ混在させない。
+- **pre-v1.0.0 bootstrap**: tag、lock、local migration skill がない既存 project は、repository history、導入記録、upstream と一致する blob から最後に採用した commit `B` を復元する。project 固有ルールを安全境界とし、対象 `U` の skill を外部入力としてレビューしてから書き込みを行う。`v1.0.0` を中継せず、`v1.0.0` 以降の任意の推奨 tag へ直接移行できる。`B` が一意に特定できない場合は owner 判断を推測せず停止する。compatibility migration の PASS 後に初回 lock を `U` で作成する。
+- **template release 側**: release tag を作成する commit では、`docs-template.lock.example.json` の `revision.tag` をその tag 名へ更新しておく。commit SHA は tag 作成後に解決するため、雛形では placeholder のままとする。
+
+`DD_SCOPE_BASE` は導入先 repository 内の validator 対象を決める project-local git ref であり、upstream template の採用 revision を示す値ではない。両者を兼用しない。
 
 ## 段階的導入スコープ (Incremental Adoption)
 
@@ -241,7 +278,7 @@ draft の stale 管理向け任意フィールド:
 - **`DD_SCOPE_BASE`**: 導入時点の git ref（commit / tag）を設定すると、`git diff --name-only --diff-filter=A <ref>...HEAD` で得た「追加されたファイル」のみを判定対象にする。既存ファイルは判定しない。一度導入後に既存ファイルを編集しても、既定ではスコープに入らない（追加のみ）。
 - **`DD_SCOPE_DIFF_FILTER`**: `DD_SCOPE_BASE` 使用時の git `--diff-filter` を上書きする。既定は `A`。既存 docs を編集した時点で管理対象にしたい導入先では `ACMR` を設定する。
 - **`DD_SCOPE_PATHS`**: 改行 / コロン区切りの明示パスリスト。CI で対象集合を自前計算する場合やテスト向け。優先順位は `DD_SCOPE_PATHS > DD_SCOPE_BASE > 未設定`。
-- **対象 validator**: `validate-frontmatter` / `validate-doc-links` / `validate-qa` がスコープを共有する。母集合決定は `scripts/scope.mjs` に集約されている。
+- **対象 validator**: `validate-frontmatter` / `validate-doc-links` / `validate-intent` / `validate-qa` がスコープを共有する。母集合決定は `scripts/scope.mjs` に集約されている。
 - **`TODO.md` は常時検証**: `validate-todo.mjs` はスコープの影響を受けない。運用台帳は導入時点から管理対象とする。
 - **横断チェックの扱い**: リンク / references の整合チェックは判定の起点ファイルだけをスコープで絞り、参照先の存在確認はファイルシステム全体に対して行う。新規 doc から既存 doc へのリンクは壊れない。
 - **必要権限**: スコープ対応 validator の実行には `--allow-env` を、`DD_SCOPE_BASE`（git）使用時は加えて `--allow-run=git` を付与する。権限が無い場合は安全側（全走査）へフォールバックする。
@@ -264,4 +301,4 @@ env:
 - CI ログ出力にはマスク設定を適用し、機密情報が残らないようにする。
 - 公開資料として扱える品質を前提に、OSS 化を想定した文言に統一する。
 - intent と QA docs を archive しない。
-- Deno validator (`validate-frontmatter`, `validate-todo`, `validate-doc-links`, `validate-qa`, `test-validators`) をローカルと CI で実行する。
+- Deno validator (`validate-frontmatter`, `validate-todo`, `validate-doc-links`, `validate-intent`, `validate-qa`, `test-validators`) をローカルと CI で実行する。

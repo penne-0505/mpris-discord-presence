@@ -154,6 +154,12 @@ systemctl --user disable --now mpris-discord-presence.service
 初回のuser-local移行前に既存unitがあった場合は、そのunitも`.previous`として保持され、runtime履歴がない場合の
 `--rollback`で復元されます。configはrollbackでも変更しません。
 
+## Template の継続更新
+
+導入後の docs-driven workflow は、moving branch ではなく推奨 release tag と full SHA で更新します。`docs-template.lock.json` の revision を B、更新先 tag を U として、paired `docs-template-migration` skill で project customization を含む three-way inventoryを作ります。互換確認が完了してからlockを更新し、strict schema migrationは別に判定します。
+
+`v1.0.0` より前に導入したrepositoryは、履歴と一致blobからbaseline Bを復元できれば、`v1.0.0`を中継せず任意の推奨 tag へ直接移行できます。Bを推測でしか決められない場合は停止します。`DD_SCOPE_BASE` は導入先 repository 内のvalidator対象を絞る設定で、template provenance lockの代替ではありません。
+
 ## 次に読む文書
 
 - [運用ガイド](_docs/guide/Core/mpris-discord-presence/usage.md)

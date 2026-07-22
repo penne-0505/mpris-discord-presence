@@ -28,14 +28,16 @@ Plan に migration、rollback、compatibility を追記し、実装後に intent
 - Risk is High unless proven otherwise.
 - QA test-plan includes rollback / recovery / data safety / compatibility checks.
 
-## Expected Intent-derived Invariants
+## Expected Decision / Invariant Behavior
 
-- INV-001: migration or compatibility decisions in intent are verified.
-- INV-002: reference docs do not describe unsupported legacy behavior as active.
+- Migration、compatibility、rollback の判断は `DEC-*` として理由・棄却案・見直し条件を残す。
+- Test Matrix と verification は影響を受ける DEC への適合をレビューする。
+- Reference docs が unsupported legacy behavior を active として記述しないことは AC とする。
+- 移行中も常に守る必要がある安全条件がある場合だけ `INV-*` を定義する。
 
 ## Expected Test-plan Behavior
 
-- Test Matrix maps AC / INV to automated tests, validators, manual QA, or diff review.
+- Test Matrix maps every AC and applicable INV to automated tests, validators, manual QA, or diff review.
 - Deferred compatibility checks include a reason and follow-up.
 
 ## Expected Verification Behavior

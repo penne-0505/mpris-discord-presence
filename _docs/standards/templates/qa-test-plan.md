@@ -4,6 +4,7 @@ status: active
 draft_status: n/a
 qa_status: planned
 risk: Medium
+qa_schema: 2
 created_at: YYYY-MM-DD
 updated_at: YYYY-MM-DD
 references:
@@ -31,11 +32,13 @@ related_prs: []
 - AC-002:
 - AC-003:
 
+## Decision Review Scope
+
+- DEC-001:
+
 ## Intent-derived Invariants
 
-- INV-001:
-- INV-002:
-- INV-003:
+- None
 
 ## Risk Assessment
 
@@ -58,10 +61,9 @@ related_prs: []
 
 ## Test Matrix
 
-| ID | Source | Requirement / Invariant | Test Type | Command / File | Expected Evidence | Status |
+| ID | Source | Requirement / Optional Invariant | Test Type | Command / File | Expected Evidence | Status |
 | --- | --- | --- | --- | --- | --- | --- |
 | AC-001 | TODO |  |  |  |  | planned |
-| INV-001 | intent |  |  |  |  | planned |
 
 ## Manual QA Checklist
 

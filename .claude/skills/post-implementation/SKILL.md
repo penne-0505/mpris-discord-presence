@@ -23,7 +23,7 @@ This skill closes implementation work by verifying outcomes, updating documentat
 - Ensure verdict is `PASS`, or `PARTIAL` with explicit follow-up TODOs and accepted residual risk.
 - Do not remove TODO items with `FAIL` or `BLOCKED` verification.
 - Confirm required intent / guide / reference / QA docs are updated.
-- Confirm non-obvious code that encodes a design decision (especially a why not or intentional omission) carries an intent anchor (`// intent: INV-00X (<Area>/<slug>) — ...`) where a future reader could otherwise mistake it for missing or removable work. Targeted, not blanket. See `quality_assurance.md` (intent ↔ code traceability).
+- Confirm non-obvious code that encodes a design decision (especially a why not or intentional omission) carries a causal intent anchor (`// intent: DEC-00X (<Area>/<slug>) — <causal why>`) where a future reader could otherwise mistake it for missing or removable work. Use `// intent-invariant: INV-00X ...` only for strict invariants. Targeted, not blanket. See `quality_assurance.md` (intent ↔ code traceability).
 
 ## Validation Commands
 
@@ -39,6 +39,7 @@ Use Deno validators, not old npm aliases, when isolating a failure:
 deno run --allow-read --allow-env --allow-run=git scripts/validate-frontmatter.mjs
 deno run --allow-read scripts/validate-todo.mjs
 deno run --allow-read --allow-env --allow-run=git scripts/validate-doc-links.mjs
+deno run --allow-read --allow-env --allow-run=git scripts/validate-intent.mjs
 deno run --allow-read --allow-env --allow-run=git scripts/validate-qa.mjs
 ```
 

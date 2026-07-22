@@ -21,7 +21,7 @@ related_prs: []
 
 - このプロジェクトでドキュメントを作成・更新する際の要点をまとめたクイックリファレンスです。
 - 詳細な執筆手順は `_docs/standards/documentation_guidelines.md`、運用プロセスは `_docs/standards/documentation_operations.md`、QA の判断基準は `_docs/standards/quality_assurance.md` を確認してください。
-- coding agent は `TODO.md`、Plan、Intent、QA test-plan、Verification をつないで、設計判断が守られているかを検証します。
+- coding agent は `TODO.md`、Plan、Intent、QA test-plan、Verification をつなぎ、変更が decision の Why / Why not / Change freedom に沿っているかを検証します。
 
 ## 参照すべき中核ドキュメント
 
@@ -30,7 +30,7 @@ related_prs: []
 2. **`_docs/standards/documentation_guidelines.md`**
    - ドキュメント体系、各ディレクトリの役割、テンプレート、更新フローをまとめています。
 3. **`_docs/standards/quality_assurance.md`**
-   - intent-derived invariant、Risk 分類、QA test-plan、verification verdict を定義しています。
+   - why-first の decision record、任意の intent-derived invariant、Risk 分類、QA test-plan、verification verdict を定義しています。
 4. **`_docs/standards/security_for_agents.md`**
    - secret、外部入力、外部 skill / script、破壊的操作の扱いを定義しています。
 5. **テンプレート集 (`_docs/standards/templates/`)**
@@ -71,8 +71,10 @@ references:
 ## intent ↔ code traceability
 
 - 設計判断を体現した非自明なコード（とくに why not・意図的な省略）には、intent への参照コメントを残します。全コード義務ではなくターゲット型です。
-- アンカーは安定 ID を主にします: `// intent: INV-003 (Workflow/<slug>) — 一行`。
-- テストで落とせる不変条件はテスト（INV 名）へ、テスト化しにくい why not はコメントへ。二重には書きません。
+- 理由へ辿る基本アンカーは `DEC-xxx` です: `// intent: DEC-003 (Workflow/<slug>) — <理由>`。
+- strict invariant を体現する場合だけ `// intent-invariant: INV-003 ...` を使います。
+- テストで落とせる acceptance criterion または任意の invariant はテスト（AC / INV 名）へ、テスト化しにくい why not は DEC を参照するコメントへ置きます。二重には書きません。
+- コメントは decision の What や exact 値を繰り返さず、因果を一行で要約します。
 - 参照の有無は validator で強制しません。skill と review で担保します。
 - 正典は `_docs/standards/quality_assurance.md` の intent ↔ code traceability です。
 
@@ -97,6 +99,10 @@ references:
 | --- | --- |
 | `qa_status` | `planned` \| `in-progress` \| `verified` \| `partial` \| `failed` \| `blocked` |
 | `risk` | `Low` \| `Medium` \| `High` \| `Critical` |
+
+新規の why-first 文書では、intent に `intent_schema: 2`、QA に `qa_schema: 2` を追加します。
+marker のない既存文書は legacy schema として受理されます。リンク・typo・metadata の修正だけなら
+legacy のままでよく、decision の意味または QA 契約を変更する編集から schema v2 へ移行します。
 
 ## よくある更新パターン
 
@@ -138,7 +144,7 @@ related_issues: []
 related_prs: []
 ```
 
-verification には、実行したコマンド、手動 QA、Acceptance Criteria Coverage、Invariant Coverage、Deferred / Not Covered、Residual Risks、Follow-up TODOs、Verification Verdict を残します。
+schema v2 の verification には、実行したコマンド、手動 QA、Acceptance Criteria Coverage、影響した DEC の Decision Conformance、該当する場合の Invariant Coverage、Deferred / Not Covered、Residual Risks、Follow-up TODOs、Verification Verdict を残します。
 
 Verdict と `qa_status` は次の対応にします。
 
@@ -155,6 +161,14 @@ Verdict と `qa_status` は次の対応にします。
 - 対応 intent が存在し、archive checklist を満たす場合だけ移送できます。
 - `intent` と QA docs は archive しません。
 
+### 5. Template release の継続更新
+
+- `docs-template.lock.json` は、最後に統合した upstream release tag と full SHA を記録します。
+- moving branch tip ではなく推奨 tag を `U` とし、`docs-template-migration` skill で `B` / `U` / project snapshot を比較します。
+- `U` の reconciliation と compatibility checks 後に lock を最後の migration write として更新し、closure verification で確認します。strict schema migration の延期状態は verification に残します。
+- pre-`v1.0.0` project は導入元 commit を一度だけ復元し、`v1.0.0` 以降の推奨 tag へ直接移行できます。
+- `DD_SCOPE_BASE` は導入先の validator scope であり、template provenance lock の代替にはなりません。
+
 ## 検証コマンド
 
 ```bash
@@ -162,6 +176,7 @@ deno fmt --check scripts/*.mjs
 deno run --allow-read --allow-env --allow-run=git scripts/validate-frontmatter.mjs
 deno run --allow-read scripts/validate-todo.mjs
 deno run --allow-read --allow-env --allow-run=git scripts/validate-doc-links.mjs
+deno run --allow-read --allow-env --allow-run=git scripts/validate-intent.mjs
 deno run --allow-read --allow-env --allow-run=git scripts/validate-qa.mjs
 deno run --allow-read --allow-write --allow-env --allow-run scripts/test-validators.mjs
 deno run --allow-read --allow-run=git scripts/test-agent-workflow-hook.mjs

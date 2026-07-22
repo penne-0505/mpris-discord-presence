@@ -2,7 +2,12 @@
 // It nudges agents to run the documented workflow and blocks high-risk deletion
 // paths, but it never updates docs or archives files by itself.
 
-const HOOK_EVENT_NAMES = new Set(["SessionStart", "Stop", "PreToolUse"]);
+const HOOK_EVENT_NAMES = new Set([
+  "SessionStart",
+  "Stop",
+  "PreToolUse",
+  "UserPromptSubmit",
+]);
 
 const SESSION_CONTEXT = [
   "Docs-driven workflow reminder:",
@@ -14,8 +19,29 @@ const SESSION_CONTEXT = [
   "- Hooks are guardrails only: do not let them replace judgement, QA evidence, or explicit verification notes.",
 ].join("\n");
 
+// intent: DEC-004 (Workflow/docs-template-v1-migration) — Keep per-prompt context short; detailed checks belong at write and completion boundaries.
+const USER_PROMPT_CONTEXT =
+  "Before acting, re-check the current hypothesis against known evidence and plausible counterevidence, then stay within the agreed Goal, Scope, Non-Goals, and Intent.";
+
+// intent: DEC-004 (Workflow/docs-template-v1-migration) — Audit durable design consequences without authorizing scope expansion.
+const WRITE_AUDIT_CONTEXT = [
+  "Before modifying files, audit the proposed change:",
+  "- Identify the evidence for the root cause and one plausible disconfirming explanation.",
+  "- Check non-local effects on callers, data flow, tests, docs, operations, and future maintenance.",
+  "- Compare the local patch with the durable solution, and preserve compatibility only when its support horizon and rationale are explicit.",
+  "- Stay within the agreed Goal, Scope, Non-Goals, and user authority; propose broader work instead of silently expanding scope.",
+  "Record externally verifiable decisions, tests, and residual risks rather than private chain-of-thought.",
+].join("\n");
+
 const CLOSURE_TERMS_RE =
   /check-docs|validate-|docs-inventory|qa-review|docs-cleanup|post-implementation|verification|verdict|residual risk|未検証|検証|残リスク|実行できなかった|deferred/i;
+
+const AUDIT_EVIDENCE_PATTERNS = [
+  /仮説|反証|反例|別解|counterevidence|counterexample|alternative explanation|assumption/i,
+  /影響範囲|非局所|全体|呼び出し元|データフロー|運用影響|non-local|system impact|caller|data flow|downstream|upstream/i,
+  /根本原因|恒久|長期|保守性|互換性|support horizon|root cause|durable|long-term|maintainability|compatibility/i,
+  /残リスク|トレードオフ|見送り|deferred|residual risk|trade-off|follow-up/i,
+];
 
 const COMPLETION_TERMS_RE =
   /完了|対応しました|実装しました|更新しました|修正しました|追加しました|done|completed|implemented|fixed|updated|added|finished|pass/i;
@@ -143,10 +169,16 @@ export const analyzePreToolUse = (input) => {
           "Edits to sensitive credential-like files are blocked. Use .env.example or a documented non-secret placeholder instead.",
       };
     }
+    return { decision: "context", context: WRITE_AUDIT_CONTEXT };
   }
 
   return null;
 };
+
+export const analyzeUserPromptSubmit = () => ({
+  decision: "context",
+  context: USER_PROMPT_CONTEXT,
+});
 
 const relevantStopPaths = (paths) => {
   const normalized = unique(paths.map(normalizePath));
@@ -195,6 +227,10 @@ const looksLikeCompletion = (message) => {
 
 const hasClosureEvidence = (message) => CLOSURE_TERMS_RE.test(message ?? "");
 
+export const auditEvidenceCount = (message) =>
+  AUDIT_EVIDENCE_PATTERNS.filter((pattern) => pattern.test(message ?? ""))
+    .length;
+
 const listSome = (label, paths) => {
   if (paths.length === 0) return null;
   const shown = paths.slice(0, 5).map((path) => `  - ${path}`).join("\n");
@@ -217,7 +253,9 @@ export const analyzeStop = ({ input = {}, dirtyPaths = [] }) => {
     input.last_assistant_message ?? input.lastAssistantMessage ?? "",
   );
   if (!looksLikeCompletion(lastMessage)) return null;
-  if (hasClosureEvidence(lastMessage)) return null;
+  const hasVerificationEvidence = hasClosureEvidence(lastMessage);
+  const hasIndependentAuditEvidence = auditEvidenceCount(lastMessage) >= 2;
+  if (hasVerificationEvidence && hasIndependentAuditEvidence) return null;
 
   const sections = [
     listSome("Changed workflow-sensitive files", grouped.workflow),
@@ -231,6 +269,8 @@ export const analyzeStop = ({ input = {}, dirtyPaths = [] }) => {
     "- If the request is current-state triage, handoff discovery, or documentation health review, use docs-inventory before cleanup.",
     "- If the task is Size >= M or Risk >= Medium, use qa-review and record verification before completion.",
     "- If draft/plan/survey cleanup or archives are involved, use docs-cleanup. Do not archive intent or QA docs.",
+    "- Re-audit the result from at least two explicit perspectives: counterevidence or alternatives, non-local system effects, long-term maintainability or compatibility, and residual risks or trade-offs.",
+    "- Keep the audit within the agreed Goal / Scope / Non-Goals. Propose broader work instead of silently expanding scope.",
     "- Mention commands actually run and remaining gaps in the final response.",
   ].join("\n");
 
@@ -298,6 +338,15 @@ const blockOut = (eventName, reason) => {
   jsonOut({ decision: "block", reason });
 };
 
+const contextOut = (eventName, context) => {
+  jsonOut({
+    hookSpecificOutput: {
+      hookEventName: eventName,
+      additionalContext: context,
+    },
+  });
+};
+
 const sessionStartOut = () => {
   jsonOut({
     hookSpecificOutput: {
@@ -313,6 +362,7 @@ const inferEventName = (arg, input) => {
   if (arg === "session-start") return "SessionStart";
   if (arg === "stop") return "Stop";
   if (arg === "pre-tool-use") return "PreToolUse";
+  if (arg === "user-prompt-submit") return "UserPromptSubmit";
   return fromInput ?? arg ?? "";
 };
 
@@ -329,6 +379,15 @@ const main = async () => {
   if (eventName === "PreToolUse") {
     const result = analyzePreToolUse(input);
     if (result?.decision === "block") blockOut("PreToolUse", result.reason);
+    else if (result?.decision === "context") {
+      contextOut("PreToolUse", result.context);
+    }
+    return;
+  }
+
+  if (eventName === "UserPromptSubmit") {
+    const result = analyzeUserPromptSubmit(input);
+    contextOut("UserPromptSubmit", result.context);
     return;
   }
 

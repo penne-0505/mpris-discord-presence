@@ -4,6 +4,7 @@ status: active
 draft_status: n/a
 qa_status: verified
 risk: Medium
+qa_schema: 2
 created_at: YYYY-MM-DD
 updated_at: YYYY-MM-DD
 references:
@@ -62,11 +63,15 @@ Result:
 | --- | --- | --- |
 | AC-001 | PASS |  |
 
+## Decision Conformance
+
+| ID | Result | Why the implementation remains aligned |
+| --- | --- | --- |
+| DEC-001 | PASS |  |
+
 ## Invariant Coverage
 
-| ID | Result | Evidence |
-| --- | --- | --- |
-| INV-001 | PASS |  |
+None
 
 ## Deferred / Not Covered
 

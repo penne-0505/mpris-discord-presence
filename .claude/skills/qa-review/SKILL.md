@@ -14,7 +14,7 @@ This skill determines whether implementation can be considered complete.
 3. Read the Plan.
 4. Read the Intent.
 5. Read the QA test-plan.
-6. Check whether AC / INV are satisfied.
+6. Check whether AC, affected DEC rationale, and applicable INV are satisfied.
 7. Run or confirm tests, validators, and manual QA.
 8. Create or update `_docs/qa/<Area>/<slug>/verification.md`.
 9. Set verification verdict to `PASS`, `PARTIAL`, `FAIL`, or `BLOCKED`.
@@ -33,7 +33,9 @@ This skill determines whether implementation can be considered complete.
 ## Rules
 
 - Do not mark PASS just because tests passed.
-- Confirm intent-derived invariants are preserved.
+- Confirm the implementation still serves each affected DEC's `Why`, and stays within its `Change freedom`.
+- Confirm each applicable intent-derived invariant is preserved; `None` is a valid invariant set.
+- New verification documents use `qa_schema: 2` and include Decision Conformance.
 - Confirm documented intentional omissions are still visible and have not been "fixed" away without updating Intent / QA.
 - Do not list commands as run unless they were actually run.
 - Do not leave residual risks vague.
@@ -42,7 +44,7 @@ This skill determines whether implementation can be considered complete.
 
 ### PASS
 
-Use PASS only when all required AC / INV checks are covered and no material residual risk remains.
+Use PASS only when all required AC checks, affected DEC reviews, and applicable INV checks are covered and no material residual risk remains.
 
 ```text
 Verdict: PASS
@@ -66,7 +68,7 @@ Follow-up TODOs:
 
 ### FAIL
 
-Use FAIL when required AC / INV checks failed.
+Use FAIL when a required AC, affected DEC, or applicable INV check failed.
 
 ```text
 Verdict: FAIL

@@ -12,6 +12,17 @@
         ]
       }
     ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"${CLAUDE_PROJECT_DIR}\" && deno run --allow-read --allow-run=git scripts/agent-workflow-hook.mjs user-prompt-submit",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash|Write|Edit|MultiEdit",
